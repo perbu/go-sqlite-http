@@ -26,17 +26,17 @@ func handleDb(logger *slog.Logger, pool *sqlitex.Pool) http.Handler {
 	var (
 		init sync.Once
 	)
-	// pick out a conn from the pool:
-	conn := pool.Get(context.Background())
-	if conn == nil { // not sure if this actually happens
-		logger.Error("pool.Get", "error", "nil conn")
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusInternalServerError)
-		})
-	}
-	defer pool.Put(conn)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// pick out a conn from the pool:
+		conn := pool.Get(context.Background())
+		if conn == nil { // not sure if this actually happens
+			logger.Error("pool.Get", "error", "nil conn")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		defer pool.Put(conn)
+
 		init.Do(func() {
 			logger.Debug("db init")
 			err := migrate(conn)
