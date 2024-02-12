@@ -21,6 +21,7 @@ func NewServer(logger *slog.Logger, conn *sqlitex.Pool) http.Handler {
 		conn,
 	)
 	var handler http.Handler = mux
+	handler = Verboten(handler)
 	handler = LoggingMiddleware(logger, handler)
 	return handler
 }
